@@ -1,0 +1,33 @@
+.spotlight-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.spotlight {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: move-spotlight 15s linear infinite;
+  filter: blur(40px);
+  opacity: 0.25;
+}
+
+@keyframes move-spotlight {
+  0% {
+    transform: translate(-200px, -200px);
+  }
+  50% {
+    transform: translate(100vw, 100vh);
+  }
+  100% {
+    transform: translate(-200px, -200px);
+  }
+}
