@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck, Globe, Search, ListChecks } from "lucide-react";
+import { ShieldCheck, Globe, Search, ListChecks, Briefcase, Shield } from "lucide-react";
 
 const tools = [
   {
@@ -26,36 +26,59 @@ const tools = [
     description: "Classify Chinese-namespace domains.",
     icon: <ListChecks className="h-6 w-6" style={{color: '#d72631', background: 'linear-gradient(90deg, #ffd700 60%, #d72631 100%)', borderRadius: '50%'}} />,
     path: "/tools/cn_domain_categorizer",
+    external: true,
   },
   {
     title: "TakedownIQ",
     description: "Automate evidence collection, analysis, and takedown requests for malicious domains.",
     icon: <ShieldCheck className="h-6 w-6 text-cyan-600" />,
     path: "/tools/takedowniq",
+    external: true,
+  },
+  {
+    title: "Job Tracker",
+    description: "Track multi-step registrar workflows (Terminations, Name Changes, Assignments).",
+    icon: <Briefcase className="h-6 w-6 text-amber-600" />,
+    path: "/tools/job-tracker",
+    external: true,
+  },
+  {
+    title: "VirusTotal Bulk Check",
+    description: "Paste domains and URLs to fetch VirusTotal detection counts in a throttled batch.",
+    icon: <Shield className="h-6 w-6 text-red-600" />,
+    path: "/tools/vt-bulk-check",
+    external: true,  // Standalone app served by Nginx
+  },
+  {
+    title: "URL Activity Scanner",
+    description: "Check whether suspicious URLs appear active without viewing, rendering, downloading, or storing content.",
+    icon: <ShieldCheck className="h-6 w-6 text-cyan-500" />,
+    path: "/tools/url-activity-scanner",
+    external: true,  // Standalone Next.js app proxied to port 3002
   },
 ];
 
 const ToolsPage = () => {
   return (
-    <div className="min-h-screen bg-white py-12 px-6 sm:px-12 lg:px-24">
-      <h1 className="text-4xl font-bold mb-8 text-center text-gray-900">Available Tools</h1>
+    <div className="py-8 px-2 sm:px-4">
+      <h1 className="text-4xl font-bold mb-8 text-center text-foreground">Available Tools</h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {tools.map((tool) => (
-          tool.title === "CN Domain Categorizer" || tool.title === "TakedownIQ" ? (
+          tool.external ? (
             <a
               key={tool.title}
               href={tool.path}
-              className="group block rounded-xl border border-gray-200 bg-white p-6 shadow-md transition hover:shadow-xl"
+              className="group block rounded-xl border bg-card p-6 shadow-md transition hover:shadow-xl hover:bg-accent/50 dark:shadow-lg dark:shadow-black/20"
               target="_self"
               rel="noopener noreferrer"
             >
               <div className="flex items-center gap-4">
-                <div className="rounded-full bg-gray-100 p-2">{tool.icon}</div>
+                <div className="rounded-full bg-muted p-2">{tool.icon}</div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600">
+                  <h2 className="text-xl font-semibold text-card-foreground group-hover:text-primary">
                     {tool.title}
                   </h2>
-                  <p className="mt-1 text-sm text-gray-600">{tool.description}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{tool.description}</p>
                 </div>
               </div>
             </a>
@@ -63,15 +86,15 @@ const ToolsPage = () => {
             <Link
               key={tool.title}
               to={tool.path}
-              className="group block rounded-xl border border-gray-200 bg-white p-6 shadow-md transition hover:shadow-xl"
+              className="group block rounded-xl border bg-card p-6 shadow-md transition hover:shadow-xl hover:bg-accent/50 dark:shadow-lg dark:shadow-black/20"
             >
               <div className="flex items-center gap-4">
-                <div className="rounded-full bg-gray-100 p-2">{tool.icon}</div>
+                <div className="rounded-full bg-muted p-2">{tool.icon}</div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600">
+                  <h2 className="text-xl font-semibold text-card-foreground group-hover:text-primary">
                     {tool.title}
                   </h2>
-                  <p className="mt-1 text-sm text-gray-600">{tool.description}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{tool.description}</p>
                 </div>
               </div>
             </Link>

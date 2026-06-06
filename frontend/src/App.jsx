@@ -12,6 +12,7 @@ const ToolsPage = React.lazy(() => import("@/pages/ToolsPage"));
 const DnsToolPage = React.lazy(() => import("@/pages/tools/DnsToolPage"));
 const UrlConverterPage = React.lazy(() => import("@/pages/tools/UrlConverterPage")); // New ✅
 const WhoisTestPage = React.lazy(() => import("@/pages/tools/WhoisTestPage"));
+// Note: VtBulkCheckPage removed - uses standalone app at /var/www/html/tools/vt-bulk-check/
 
 
 // Loading component
@@ -68,6 +69,7 @@ function App() {
               <Route path="/tools/url-converter" element={<UrlConverterPage />} /> {/* ✅ New */}
 	      <Route path="/tools/whois-test" element={<WhoisTestPage />} />
 	      <Route path="/tools/whois-lookup" element={<WhoisLookupPage />} />
+              {/* VT Bulk Check: standalone app at /tools/vt-bulk-check/ (external: true in ToolsPage) */}
               <Route
                 path="*"
                 element={

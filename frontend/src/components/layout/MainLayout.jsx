@@ -18,7 +18,7 @@ function MainLayout({ children }) {
     setTheme(newTheme);
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('theme', newTheme);
-      document.documentElement.classList.toggle('dark');
+      // Class is set by useEffect based on state - no need to toggle here
     }
   };
 

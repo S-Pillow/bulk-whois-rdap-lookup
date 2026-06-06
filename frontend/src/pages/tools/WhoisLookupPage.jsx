@@ -327,14 +327,14 @@ const WhoisLookupPage = () => {
   const progress = state.total > 0 ? (state.completed / state.total) * 100 : 0;
 
   return (
-    <div className="container mx-auto p-4 md:p-8 min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="p-4 md:p-8 text-foreground">
       <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="#4F46E5" />
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
             Bulk WHOIS/RDAP Lookup
           </h1>
-          <p className="mt-3 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">
             Enter domains, select fields, and choose your lookup method. Results stream in real-time.
           </p>
         </div>
@@ -363,27 +363,27 @@ const WhoisLookupPage = () => {
         </div>
 
         {/* Field Selection Section */}
-        <div className="bg-white dark:bg-gray-800 shadow-xl rounded-lg p-6 md:p-8 mb-8">
+        <div className="bg-card shadow-xl rounded-lg p-6 md:p-8 mb-8 border">
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-2xl font-semibold text-indigo-600 dark:text-indigo-400">Select Fields & Method</h2>
             <Settings2 size={28} className="text-indigo-500" />
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {initialCheckboxConfig.map(cb => (
-              <label key={cb.id} className={`flex items-center p-3 rounded-lg transition-all duration-150 ease-in-out cursor-pointer border-2 ${checkboxStates[cb.id] ? 'bg-indigo-50 dark:bg-indigo-900/50 border-indigo-500' : 'bg-gray-50 dark:bg-gray-700/30 border-gray-300 dark:border-gray-600 hover:border-indigo-400'}`}>
+              <label key={cb.id} className={`flex items-center p-3 rounded-lg transition-all duration-150 ease-in-out cursor-pointer border-2 ${checkboxStates[cb.id] ? 'bg-indigo-500/10 border-indigo-500' : 'bg-muted/50 border-border hover:border-indigo-400'}`}>
                 <input
                   type="checkbox"
-                  className="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:checked:bg-indigo-500 transition duration-150 ease-in-out mr-3"
+                  className="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 border-border bg-background checked:bg-indigo-500 transition duration-150 ease-in-out mr-3"
                   checked={checkboxStates[cb.id]}
                   onChange={() => handleCheckboxChange(cb.id)}
                   disabled={cb.id === 'useRDAP' ? false : (cb.rdapDisabled && checkboxStates.useRDAP)}
                 />
-                <span className={`text-sm font-medium ${ (cb.rdapDisabled && checkboxStates.useRDAP) ? 'text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-200'}`}>{cb.label}</span>
+                <span className={`text-sm font-medium ${ (cb.rdapDisabled && checkboxStates.useRDAP) ? 'text-muted-foreground/50' : 'text-foreground'}`}>{cb.label}</span>
               </label>
             ))}
           </div>
           {checkboxStates.useRDAP && (
-             <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 dark:border-yellow-500 rounded-md">
+             <div className="mt-4 p-3 bg-yellow-500/10 border-l-4 border-yellow-500 rounded-md">
                 <div className="flex items-center">
                     <Info size={20} className="text-yellow-600 dark:text-yellow-400 mr-3 flex-shrink-0" />
                     <p className="text-sm text-yellow-700 dark:text-yellow-300">
@@ -408,7 +408,7 @@ const WhoisLookupPage = () => {
 
         {/* Progress and Results Section */}
         {(state.total > 0 || state.loading || state.error) && (
-          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-lg p-6 md:p-8 mb-8">
+          <div className="bg-card shadow-xl rounded-lg p-6 md:p-8 mb-8 border">
             <h2 className="text-2xl font-semibold mb-3 text-indigo-600 dark:text-indigo-400">Results</h2>
             {state.loading && state.total > 0 && (
               <div className="mb-4">
@@ -416,7 +416,7 @@ const WhoisLookupPage = () => {
                   <span className="text-base font-medium text-indigo-700 dark:text-indigo-300">Progress</span>
                   <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">{state.completed} of {state.total} domains</span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                <div className="w-full bg-muted rounded-full h-2.5">
                   <div className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300 ease-out" style={{ width: `${progress}%` }}></div>
                 </div>
               </div>
@@ -452,17 +452,17 @@ const WhoisLookupPage = () => {
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
                         {initialCheckboxConfig.filter(cb => cb.id !== 'useRDAP' && checkboxStates[cb.id] && (cb.alwaysEnabled || !checkboxStates.useRDAP || !cb.rdapDisabled)).map(config => (
-                          <th key={config.id} scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          <th key={config.id} scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             {config.label}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody className="bg-card divide-y divide-border">
                       {state.results.map((result, index) => (
-                        <tr key={index} className={`${result.error_message ? 'bg-red-50 dark:bg-red-900/10' : (index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-800/50')}`}>
+                        <tr key={index} className={`${result.error_message ? 'bg-destructive/10' : (index % 2 === 0 ? 'bg-card' : 'bg-muted/30')}`}>
                           {initialCheckboxConfig.filter(cb => cb.id !== 'useRDAP' && checkboxStates[cb.id] && (cb.alwaysEnabled || !checkboxStates.useRDAP || !cb.rdapDisabled)).map(config => (
-                            <td key={config.id} className="px-6 py-4 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 break-words">
+                            <td key={config.id} className="px-6 py-4 whitespace-pre-wrap text-sm text-card-foreground break-words">
                               {Array.isArray(result[config.fieldKey]) ? result[config.fieldKey].join('; ') : (result[config.fieldKey] !== undefined && result[config.fieldKey] !== null ? String(result[config.fieldKey]) : 'N/A')}
                             </td>
                           ))}

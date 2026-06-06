@@ -25,6 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # --- Import Local Routers and Utilities ---
 from whois_rdap_service import router as whois_rdap_router
+from routers.vt_bulk_check import router as vt_bulk_check_router
 from utils.url_tools import sanitize_urls, unsanitize_urls, extract_domains
 # from bulk_lookup import router as bulk_lookup_router # Temporarily disabled, file is empty
 
@@ -86,6 +87,9 @@ app.add_middleware(
 # --- API Routers ---
 # Include all the different tool routers with an /api prefix.
 app.include_router(whois_rdap_router, prefix="/api", tags=["WHOIS/RDAP"])
+app.include_router(vt_bulk_check_router, prefix="/api", tags=["VirusTotal Bulk Check"])
+# Also mount VT router without /api so nginx proxy_pass with trailing slash (which strips /api) still reaches it.
+app.include_router(vt_bulk_check_router, tags=["VirusTotal Bulk Check"])
 # app.include_router(bulk_lookup_router, prefix="/api", tags=["Bulk Lookup"]) # Temporarily disabled
 
 # --- Root Endpoint ---

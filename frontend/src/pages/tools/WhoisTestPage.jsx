@@ -72,21 +72,21 @@ function WhoisTestPage() {
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Test RDAP/WHOIS Lookup</h1>
+    <div className="p-4 sm:p-8">
+      <h1 className="text-2xl font-bold mb-4 text-foreground">Test RDAP/WHOIS Lookup</h1>
       
       <div className="mb-4">
-        <label className="block mb-2">Domains (one per line):</label>
+        <label className="block mb-2 text-foreground">Domains (one per line):</label>
         <textarea 
           value={domains} 
           onChange={(e) => setDomains(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded bg-background text-foreground"
           rows={4}
         />
       </div>
       
       <div className="mb-4">
-        <label className="flex items-center gap-2">
+        <label className="flex items-center gap-2 text-foreground">
           <input 
             type="checkbox" 
             checked={useRDAP} 
@@ -99,15 +99,15 @@ function WhoisTestPage() {
       <button
         onClick={testDomainLookup}
         disabled={loading}
-        className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-800 disabled:bg-blue-300"
+        className="px-6 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/80 disabled:opacity-50"
       >
         {loading ? 'Loading...' : 'Run Test'}
       </button>
       
       {requestDetails && (
         <div className="mt-6">
-          <h2 className="text-xl font-bold mb-2">Request Details</h2>
-          <pre className="bg-gray-100 p-4 rounded overflow-auto max-h-60">
+          <h2 className="text-xl font-bold mb-2 text-foreground">Request Details</h2>
+          <pre className="bg-muted text-muted-foreground p-4 rounded overflow-auto max-h-60">
             {JSON.stringify(requestDetails, null, 2)}
           </pre>
         </div>
@@ -115,8 +115,8 @@ function WhoisTestPage() {
       
       {error && (
         <div className="mt-6">
-          <h2 className="text-xl font-bold mb-2 text-red-600">Error</h2>
-          <pre className="bg-red-50 text-red-800 p-4 rounded overflow-auto max-h-60">
+          <h2 className="text-xl font-bold mb-2 text-destructive">Error</h2>
+          <pre className="bg-destructive/10 text-destructive p-4 rounded overflow-auto max-h-60 border border-destructive/20">
             {error}
           </pre>
         </div>
@@ -124,35 +124,35 @@ function WhoisTestPage() {
       
       {apiResponse && (
         <div className="mt-6">
-          <h2 className="text-xl font-bold mb-2 text-green-600">API Response</h2>
-          <pre className="bg-green-50 p-4 rounded overflow-auto max-h-96">
+          <h2 className="text-xl font-bold mb-2 text-green-600 dark:text-green-400">API Response</h2>
+          <pre className="bg-green-500/10 text-green-700 dark:text-green-300 p-4 rounded overflow-auto max-h-96 border border-green-500/20">
             {JSON.stringify(apiResponse, null, 2)}
           </pre>
           
           {apiResponse.results && (
             <div className="mt-4">
-              <h3 className="text-lg font-bold mb-2">Results Table</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border">
-                  <thead>
+              <h3 className="text-lg font-bold mb-2 text-foreground">Results Table</h3>
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="min-w-full bg-card">
+                  <thead className="bg-muted">
                     <tr>
-                      <th className="border p-2">Domain</th>
-                      <th className="border p-2">Method</th>
-                      <th className="border p-2">Registrar</th>
-                      <th className="border p-2">Registrant</th>
-                      <th className="border p-2">Status</th>
-                      <th className="border p-2">Creation Date</th>
+                      <th className="border-b p-2 text-left text-foreground">Domain</th>
+                      <th className="border-b p-2 text-left text-foreground">Method</th>
+                      <th className="border-b p-2 text-left text-foreground">Registrar</th>
+                      <th className="border-b p-2 text-left text-foreground">Registrant</th>
+                      <th className="border-b p-2 text-left text-foreground">Status</th>
+                      <th className="border-b p-2 text-left text-foreground">Creation Date</th>
                     </tr>
                   </thead>
                   <tbody>
                     {apiResponse.results.map((item, index) => (
-                      <tr key={index}>
-                        <td className="border p-2">{item.domain}</td>
-                        <td className="border p-2">{item.method}</td>
-                        <td className="border p-2">{item.registrar}</td>
-                        <td className="border p-2">{item.registrant_name}</td>
-                        <td className="border p-2">{Array.isArray(item.statuses) ? item.statuses.join(', ') : item.statuses}</td>
-                        <td className="border p-2">{item.creation_date}</td>
+                      <tr key={index} className="border-b border-border hover:bg-muted/50">
+                        <td className="p-2 text-card-foreground">{item.domain}</td>
+                        <td className="p-2 text-card-foreground">{item.method}</td>
+                        <td className="p-2 text-card-foreground">{item.registrar}</td>
+                        <td className="p-2 text-card-foreground">{item.registrant_name}</td>
+                        <td className="p-2 text-card-foreground">{Array.isArray(item.statuses) ? item.statuses.join(', ') : item.statuses}</td>
+                        <td className="p-2 text-card-foreground">{item.creation_date}</td>
                       </tr>
                     ))}
                   </tbody>

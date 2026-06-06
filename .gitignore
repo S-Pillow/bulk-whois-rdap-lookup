@@ -24,6 +24,14 @@ frontend/dist/
 .env.*
 !.env.example
 
+# Backup files created by deploy scripts and editors
+*.bak
+*.bak-*
+*.bak.*
+
+# Runtime data — never commit
+/var/lib/dns-tool/
+
 # OS/editor
 .DS_Store
 Thumbs.db
