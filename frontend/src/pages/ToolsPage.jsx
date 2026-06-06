@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck, Globe, Search, ListChecks, Briefcase, Shield } from "lucide-react";
+import { ShieldCheck, Globe, Search, ListChecks, Briefcase, Shield, ShieldAlert } from "lucide-react";
 
 const tools = [
   {
@@ -55,6 +55,13 @@ const tools = [
     icon: <ShieldCheck className="h-6 w-6 text-cyan-500" />,
     path: "/tools/url-activity-scanner",
     external: true,  // Standalone Next.js app proxied to port 3002
+  },
+  {
+    title: "MDI",
+    description: "Malicious Domain Identifier — combine domain reputation, WHOIS, and live activity into a single check.",
+    icon: <ShieldAlert className="h-6 w-6 text-orange-600" />,
+    path: "/tools/mdi",
+    external: true,  // Standalone app at /var/www/html/tools/mdi/
   },
 ];
 
