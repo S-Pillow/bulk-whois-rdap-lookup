@@ -17,6 +17,8 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel
 
+from quota_lock import QuotaLockTimeout, quota_lock
+
 logger = logging.getLogger("vt_bulk_check")
 
 router = APIRouter(prefix="/vt-bulk-check")
@@ -62,70 +64,88 @@ def _get_utc_date_str() -> str:
     return datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
 
 
-def _load_usage_state() -> UsageState:
-    """Load usage state from persistent storage."""
-    global _USAGE_STATE
-    
+def _load_usage_state_unlocked() -> UsageState:
+    """Load usage state from disk without acquiring flock."""
     today = _get_utc_date_str()
-    
     if _USAGE_FILE.exists():
         try:
             data = json.loads(_USAGE_FILE.read_text())
             stored_date = data.get("date_utc", "")
             if stored_date == today:
-                _USAGE_STATE = UsageState(
+                return UsageState(
                     date_utc=today,
-                    daily_lookups_used=data.get("daily_lookups_used", 0)
+                    daily_lookups_used=data.get("daily_lookups_used", 0),
                 )
-                return _USAGE_STATE
         except Exception as e:
             logger.warning(f"Failed to load usage state: {e}")
-    
-    # Reset for new day or on error
-    _USAGE_STATE = UsageState(date_utc=today, daily_lookups_used=0)
+    return UsageState(date_utc=today, daily_lookups_used=0)
+
+
+def _load_usage_state() -> UsageState:
+    """Load usage state from persistent storage under shared flock."""
+    global _USAGE_STATE
+    try:
+        with quota_lock("shared"):
+            _USAGE_STATE = _load_usage_state_unlocked()
+    except QuotaLockTimeout as e:
+        logger.warning(f"Quota lock timeout loading usage state: {e}")
+        today = _get_utc_date_str()
+        _USAGE_STATE = UsageState(date_utc=today, daily_lookups_used=0)
     return _USAGE_STATE
 
 
-def _save_usage_state(state: UsageState) -> None:
-    """Save usage state to persistent storage.
+def _update_daily_history_unlocked(date_str: str, count: int) -> None:
+    """Update daily history file (caller must hold exclusive flock)."""
+    history: Dict[str, Any] = {}
+    if _DAILY_HISTORY_FILE.exists():
+        try:
+            history = json.loads(_DAILY_HISTORY_FILE.read_text())
+            if not isinstance(history, dict):
+                history = {}
+        except Exception:
+            history = {}
+    history[date_str] = count
+    if len(history) > _DAILY_HISTORY_MAX_DAYS:
+        for old_key in sorted(history.keys())[:-_DAILY_HISTORY_MAX_DAYS]:
+            del history[old_key]
+    tmp = _DAILY_HISTORY_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(history, sort_keys=True))
+    os.replace(tmp, _DAILY_HISTORY_FILE)
 
-    vt_usage.json is always written first.  The daily history update is a
-    separate side-effect; its failure must never affect vt_usage.json.
+
+def _save_usage_state(state: UsageState) -> None:
+    """Save usage state to persistent storage under exclusive flock.
+
+    vt_usage.json is written via tmp → os.replace. Daily history is a
+    side-effect inside the same lock; its failure must never affect vt_usage.json.
     """
     try:
-        _USAGE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        _USAGE_FILE.write_text(json.dumps({
-            "date_utc": state.date_utc,
-            "daily_lookups_used": state.daily_lookups_used
-        }))
+        with quota_lock("exclusive"):
+            _USAGE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            payload = json.dumps({
+                "date_utc": state.date_utc,
+                "daily_lookups_used": state.daily_lookups_used,
+            })
+            tmp = _USAGE_FILE.with_suffix(".tmp")
+            tmp.write_text(payload)
+            os.replace(tmp, _USAGE_FILE)
+            try:
+                _update_daily_history_unlocked(state.date_utc, state.daily_lookups_used)
+            except Exception as e:
+                logger.warning(f"Failed to update daily history: {e}")
+    except QuotaLockTimeout as e:
+        logger.warning(f"Quota lock timeout saving usage state: {e}")
     except Exception as e:
         logger.warning(f"Failed to save usage state: {e}")
-    # Additive side-effect — isolated try/except so a failure here never affects vt_usage.json
-    _update_daily_history(state.date_utc, state.daily_lookups_used)
 
 
 def _update_daily_history(date_str: str, count: int) -> None:
-    """Atomically update the rolling 90-day daily usage history file.
-
-    Failure is logged and silently swallowed — must never block VT API calls.
-    """
+    """Atomically update daily history under exclusive flock."""
     try:
-        history: Dict[str, Any] = {}
-        if _DAILY_HISTORY_FILE.exists():
-            try:
-                history = json.loads(_DAILY_HISTORY_FILE.read_text())
-                if not isinstance(history, dict):
-                    history = {}
-            except Exception:
-                history = {}  # corrupt — start fresh
-        history[date_str] = count
-        # Prune to last 90 days
-        if len(history) > _DAILY_HISTORY_MAX_DAYS:
-            for old_key in sorted(history.keys())[:-_DAILY_HISTORY_MAX_DAYS]:
-                del history[old_key]
-        tmp = _DAILY_HISTORY_FILE.with_suffix(".tmp")
-        tmp.write_text(json.dumps(history, sort_keys=True))
-        os.replace(tmp, _DAILY_HISTORY_FILE)
+        with quota_lock("exclusive"):
+            _update_daily_history_unlocked(date_str, count)
+    except QuotaLockTimeout as e:
+        logger.warning(f"Quota lock timeout updating daily history: {e}")
     except Exception as e:
         logger.warning(f"Failed to update daily history: {e}")
 
@@ -499,17 +519,15 @@ async def _reanalyze_url(url: str) -> None:
 
 
 def _append_usage_history(summary: Dict[str, Any]) -> None:
-    """Append one metadata-only summary record to the per-job usage history JSONL file.
-
-    Must be called OUTSIDE _JOBS_LOCK.  Failure is logged and swallowed —
-    it must never affect job completion.  The record must contain only counts
-    and metadata — no domain names, no URLs, no input items.
-    """
+    """Append one metadata-only summary record under exclusive flock."""
     try:
-        _USAGE_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(_USAGE_HISTORY_FILE, "a", encoding="utf-8") as f:
-            f.write(json.dumps(summary) + "\n")
+        with quota_lock("exclusive"):
+            _USAGE_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+            with open(_USAGE_HISTORY_FILE, "a", encoding="utf-8") as f:
+                f.write(json.dumps(summary) + "\n")
         logger.debug(f"Usage history appended for job {summary.get('job_id')}")
+    except QuotaLockTimeout as e:
+        logger.warning(f"Quota lock timeout appending history for job {summary.get('job_id')}: {e}")
     except Exception as e:
         logger.warning(f"Failed to append usage history for job {summary.get('job_id')}: {e}")
 
